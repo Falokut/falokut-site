@@ -18,8 +18,9 @@ const LINES: Line[] = [
 
 const HELP = 'команды: gopher · clear · cls · help · whoami'
 
-// Сколько строк истории держать: консоль не должна «пухнуть».
-const MAX_HISTORY = 30
+// Сколько строк истории держать: окно фиксированное, лишние строки
+// уходят в скролл и не «пухнут».
+const MAX_HISTORY = 12
 
 type Pos = { line: number; char: number }
 
@@ -45,6 +46,12 @@ export const HeroTerminal = ({ onGopher }: { onGopher: () => void }) => {
     }, delay)
     return () => window.clearTimeout(t)
   }, [pos, done])
+
+  // Окно фиксированное: новые строки — вниз, всегда на последнем.
+  useEffect(() => {
+    const el = bodyRef.current
+    if (el !== null) el.scrollTop = el.scrollHeight
+  }, [pos, history, input, done])
 
   // Выполнение введённой команды (только когда набор дописан).
   const runCommand = (raw: string) => {

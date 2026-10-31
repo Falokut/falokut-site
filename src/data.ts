@@ -3,8 +3,8 @@
 // гамбургер-меню). Внутри страницы:
 //   ```hero — лендинг (HeroBlock), рисуется перед разделами;
 //   «## …» — раздел (h2 + номер), «### …» — подблок (h3, в TOC);
-//   ```ttt / ```2048 / ```memory — игра в разделе (TicTacToe /
-//   Game2048 / GameMemory);
+//   ```ttt / ```2048 / ```memory / ```chess — игра в разделе
+//   (TicTacToe / Game2048 / GameMemory / ChessGame);
 //   остальные fence — «терминальные окна» (Markdown).
 // Порядок и названия страниц — content/meta.json.
 
@@ -34,7 +34,7 @@ const meta = (jsonModules['/content/meta.json'] !== undefined
 }
 
 export type SubBlock = { heading: string; id: string; text: string }
-export type GameId = 'ttt' | '2048' | 'memory'
+export type GameId = 'ttt' | '2048' | 'memory' | 'chess'
 export type Section = {
   heading: string
   id: string
@@ -45,7 +45,7 @@ export type Section = {
 export type PageBlocks = { hero: string | null; sections: Section[] }
 export type PageDef = { id: string; title: string; blocks: PageBlocks }
 
-const GAME_FENCES = ['ttt', '2048', 'memory'] as const
+const GAME_FENCES = ['ttt', '2048', 'memory', 'chess'] as const
 
 /** Название для лого в навигации. */
 export const siteTitle = meta.title ?? 'falokut'

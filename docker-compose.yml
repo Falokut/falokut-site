@@ -25,10 +25,19 @@ services:
       - "traefik.http.middlewares.site-www-redirect.redirectRegex.regex=^https?://www\\.falokut\\.ru/(.*)$"
       - "traefik.http.middlewares.site-www-redirect.redirectRegex.replacement=https://falokut.ru/$${1}"
       - "traefik.http.middlewares.site-www-redirect.redirectRegex.permanent=true"
-      # HSTS — как в n8n-compose
+      # HSTS — STS-заголовки на HTTPS-ответах (как в n8n-compose)
       - "traefik.http.middlewares.site-hsts.headers.STSSeconds=315360000"
       - "traefik.http.middlewares.site-hsts.headers.STSIncludeSubdomains=true"
-      - "traefik.http.middlewares.site-hsts.headers.SSLRedirect=true"
+      # HTTP -> HTTPS: отдельный НЕ-TLS роутер на web (80). Роутер с
+      # tls=true обслуживает только HTTPS-запросы, поэтому на http он
+      # не матчится и без этого роутера http отдавал бы 404.
+      # (SSLRedirect в v3 из headers-мидлваря убран — redirectScheme.)
+      - "traefik.http.routers.site-http.rule=Host(`falokut.ru`) || Host(`www.falokut.ru`)"
+      - "traefik.http.routers.site-http.entrypoints=web"
+      - "traefik.http.routers.site-http.priority=100"
+      - "traefik.http.routers.site-http.middlewares=site-https-redirect"
+      - "traefik.http.middlewares.site-https-redirect.redirectScheme.scheme=https"
+      - "traefik.http.middlewares.site-https-redirect.redirectScheme.permanent=true"
 
 # сайт вешается на ту же сеть, где живёт traefik из n8n-compose
 networks:

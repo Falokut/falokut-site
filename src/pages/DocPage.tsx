@@ -1,10 +1,11 @@
 // Универсальная md-страница: разделы из content/<файл>.md.
 // hero-фенс в преамбуле — лендинг (рисуется перед разделами, без
 // h2 над ним); «## …» — раздел (h2 + номер); «### …» — подблок (h3);
-// игровой фенс (```ttt/```2048/```memory) — сама игра.
+// игровой фенс (```ttt/```2048/```memory/```chess) — сама игра.
 
 import { type ReactNode } from 'react'
 
+import { ChessGame } from '../ChessGame'
 import { Game2048 } from '../Game2048'
 import { GameMemory } from '../GameMemory'
 import { HeroBlock } from '../HeroBlock'
@@ -54,6 +55,8 @@ const renderGame = (game: GameId): ReactNode =>
     <TicTacToe />
   ) : game === '2048' ? (
     <Game2048 />
+  ) : game === 'chess' ? (
+    <ChessGame />
   ) : (
     <GameMemory />
   )

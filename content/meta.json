@@ -6,6 +6,7 @@
     { "file": "games.md" },
     { "file": "ttt.md" },
     { "file": "2048.md" },
-    { "file": "memory.md" }
+    { "file": "memory.md" },
+    { "file": "chess.md" }
   ]
 }
