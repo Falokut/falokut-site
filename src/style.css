@@ -65,7 +65,7 @@ body {
   border-bottom: 1px solid var(--border);
 }
 .nav-inner {
-  max-width: 980px;
+  max-width: 1080px;
   margin: 0 auto;
   padding: 14px 24px;
   display: flex;
@@ -113,15 +113,30 @@ body {
 }
 
 /* ===== layout ===== */
-main {
+.layout {
   flex: 1;
-  max-width: 980px;
   width: 100%;
+  max-width: 1080px;
   margin: 0 auto;
   padding: 0 24px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 190px;
+  column-gap: 56px;
 }
+
+main.content {
+  min-width: 0;
+}
+
 .section {
   padding: 76px 0 0;
+}
+
+/* Сдвиг якорей под sticky-нав. */
+.hero,
+.section,
+.block {
+  scroll-margin-top: 64px;
 }
 
 .h2 {
@@ -138,6 +153,62 @@ main {
   font-size: 13px;
   font-weight: 500;
   color: var(--accent);
+}
+
+.h3 {
+  font-size: 19px;
+  font-weight: 650;
+  letter-spacing: -0.2px;
+  margin: 30px 0 12px;
+}
+
+/* ===== TOC-сайдбар (ненавязчивый, справа) ===== */
+.toc {
+  position: sticky;
+  top: 84px;
+  align-self: start;
+  padding-top: 104px;
+  min-width: 0;
+}
+
+.toc .section-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--dim);
+  margin-bottom: 10px;
+}
+
+.toc-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  border-left: 2px solid var(--border);
+  color: var(--muted);
+  font-family: var(--font);
+  font-size: 13px;
+  line-height: 1.5;
+  padding: 4px 12px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.toc-item:hover {
+  color: var(--text);
+  border-left-color: var(--accent);
+}
+
+.toc-item.sub {
+  color: var(--dim);
+  font-size: 12.5px;
+}
+
+.toc-item.active {
+  color: var(--accent);
+  border-left-color: var(--accent);
 }
 
 /* ===== hero ===== */
@@ -473,7 +544,7 @@ main {
     display: none;
   }
   /* TOC — только на широких экранах. */
-  .layout.toc-open {
+  .layout {
     grid-template-columns: minmax(0, 1fr);
   }
   .toc {

@@ -1,21 +1,22 @@
 # falokut-site
 
 Сайт-визитка: **Vite + React + TS + react-markdown** (тот же стек, что
-polygon-docs-ui). Логика контента — как в docs-ui: **один markdown-файл
-в `content/` = один документ**, дерево документов — в верхнем нав-баре,
-выбор — по hash (`#/doc/<path>`), TOC («Содержание») — в ненавязчивом
-правом сайдбаре, кросс-ссылки между документами — прямо в markdown.
+polygon-docs-ui). Одностраничный: **один markdown-файл в `content/` =
+один раздел**, все разделы — на одной странице (порядок — `content/meta.json`).
+Логика — как в docs-ui: контент вшивается в бандл при сборке
+(`import.meta.glob`), заголовки и порядок — из `meta.json`, кросс-ссылки
+между разделами — прямо в markdown.
 
 ## Структура
 
 ```
 content/        markdown-контент: about, stack, oss, projects, contacts
-                + meta.json (название, порядок документов в nav)
+                + meta.json (название, порядок разделов)
 src/
-  App.tsx       layout: nav с деревом, TOC-сайдбар, hero на дефолтном документе
+  App.tsx       одна страница: nav с деревом разделов (scroll-spy), hero,
+                разделы из md, TOC-сайдбар справа
   docsTree.ts   import.meta.glob('/content/**/*.md') + meta.json -> дерево
-  Markdown.tsx  react-markdown: fence-блоки как «терминалы», кросс-ссылки,
-                h2-якоря; компоненты подмешиваются из App
+  Markdown.tsx  react-markdown: fence-блоки как «терминалы», кросс-ссылки
   Terminal.tsx  анимация «терминала» в hero (whoami / go build ./...)
   GopherEgg.tsx пасхалка: набери «gopher» с клавиатуры
   Statusbar.tsx vim-статусбар с uptime
@@ -23,25 +24,18 @@ src/
 cfg/nginx.conf  nginx (SPA-fallback + долгий кеш /assets/)
 ```
 
-## Маршруты
+## Навигация
 
-Дефолтный документ — первый в порядке `content/meta.json` (`about.md`):
-без hash сайт открывает `#/doc/about.md`.
+- Разделы — якоря на одной странице: `#about`, `#stack`, `#oss`,
+  `#projects`, `#contacts`; nav и TOC подсвечивают текущий.
+- Кросс-ссылка в markdown — путь к файлу (относительный или абсолютный
+  от корня `content/`, с поддержкой `../`):
 
-```
-#/doc/about.md
-#/doc/stack.md
-#/doc/oss.md
-#/doc/projects.md
-#/doc/contacts.md
-```
+  ```markdown
+  Подробнее — в [стек](stack.md) и [open source](/oss.md).
+  ```
 
-Кросс-ссылка в markdown — путь к файлу (относительный от каталога
-текущего дока или абсолютный от корня `content/`, с поддержкой `../`):
-
-```markdown
-Подробнее — в [стек](stack.md) и [open source](/oss.md).
-```
+  Ссылка превращается в анкер на раздел.
 
 ## Локально
 
