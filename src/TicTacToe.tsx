@@ -25,18 +25,21 @@ const WINNER = (b: Board): Cell | 'draw' | null => {
   return b.every((x) => x !== '') ? 'draw' : null
 }
 
+// Оценка — с точки зрения O (Gopher): O-ход максимизирует, X-ход —
+// минимизирует (без чередования Gopher легко проигрывал).
 const MINIMAX = (b: Board, player: Cell): number => {
   const w = WINNER(b)
   if (w === 'O') return 1
   if (w === 'X') return -1
   if (w === 'draw') return 0
-  let best = -Infinity
+  const maximizing = player === 'O'
+  let best = maximizing ? -Infinity : Infinity
   for (let i = 0; i < 9; i++) {
     if (b[i] === '') {
       b[i] = player
       const s = MINIMAX(b, player === 'O' ? 'X' : 'O')
       b[i] = ''
-      if (s > best) best = s
+      if (maximizing ? s > best : s < best) best = s
     }
   }
   return best

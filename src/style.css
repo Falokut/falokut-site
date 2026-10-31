@@ -481,6 +481,13 @@ main.content {
 .markdown .term {
   margin: 18px 0;
 }
+/* Код fence-блока — не инлайновый: без «чипов» в терминальном окне. */
+.markdown .term code {
+  background: transparent;
+  border: none;
+  padding: 0;
+  border-radius: 0;
+}
 .markdown table {
   width: 100%;
   border-collapse: collapse;
@@ -812,6 +819,7 @@ main.content {
   position: relative;
 }
 .g2048-board {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 8px;
@@ -820,8 +828,24 @@ main.content {
   border: 1px solid var(--border);
   border-radius: 12px;
 }
-.tile {
+.g2048-cell {
   aspect-ratio: 1;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.035);
+}
+/* Слой плиток: absolute, позиция — translate (шаг = плитка + gap). */
+.g2048-tiles {
+  position: absolute;
+  inset: 8px;
+  pointer-events: none;
+}
+.g2048-tile {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: calc((100% - 24px) / 4);
+  height: calc((100% - 24px) / 4);
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -829,6 +853,86 @@ main.content {
   font-family: var(--mono);
   font-size: 20px;
   font-weight: 700;
+  background: #1b2536;
+  color: #c9d4e4;
+  transform: translate(
+    calc(var(--x) * (100% + 8px)),
+    calc(var(--y) * (100% + 8px))
+  );
+  transition: transform 140ms ease;
+}
+.g2048-tile.t4 {
+  background: #22304a;
+  color: #d5deec;
+}
+.g2048-tile.t8 {
+  background: #0e4d5e;
+  color: #eaf6fa;
+}
+.g2048-tile.t16 {
+  background: #0a6b7a;
+  color: #eaf6fa;
+}
+.g2048-tile.t32 {
+  background: #0a8095;
+  color: #eaf6fa;
+}
+.g2048-tile.t64 {
+  background: #00add8;
+  color: #04121a;
+}
+.g2048-tile.t128 {
+  background: #19bdec;
+  color: #04121a;
+  font-size: 18px;
+}
+.g2048-tile.t256 {
+  background: #3ee0c4;
+  color: #04121a;
+  font-size: 18px;
+}
+.g2048-tile.t512 {
+  background: #4ade80;
+  color: #04121a;
+  font-size: 18px;
+}
+.g2048-tile.t1024 {
+  background: #a3e635;
+  color: #04121a;
+  font-size: 16px;
+}
+.g2048-tile.t2048 {
+  background: #facc15;
+  color: #1a1500;
+  font-size: 16px;
+  box-shadow: 0 0 20px rgba(250, 204, 21, 0.3);
+}
+/* Новая плитка — pop-in (scale отдельно от позиционирующего transform). */
+.g2048-tile.new {
+  animation: tile-pop 180ms ease 100ms backwards;
+}
+@keyframes tile-pop {
+  from {
+    scale: 0;
+  }
+  to {
+    scale: 1;
+  }
+}
+/* Слияние — пульс на новой (во второй фазе) плитке. */
+.g2048-tile.merged {
+  animation: tile-merge 200ms ease;
+}
+@keyframes tile-merge {
+  0% {
+    scale: 1;
+  }
+  55% {
+    scale: 1.2;
+  }
+  100% {
+    scale: 1;
+  }
 }
 .g2048-overlay {
   position: absolute;

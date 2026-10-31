@@ -58,7 +58,7 @@ Go-библиотек и сервисов для продакшена.
 | [etp](https://github.com/txix-open/etp) ★ 15 | Event-транспорт — альтернатива socket.io |
 | [grmq](https://github.com/txix-open/grmq) ★ 9 | Обёртка с высокой абстракцией над RabbitMQ |
 | [bgjob](https://github.com/txix-open/bgjob) | Tiny-библиотека для фоновых jobs |
-| [ispctl](https://github.com/txix-open/ispctl) · [isp-config-service](https://github.com/txix-open/isp-config-service) | Инструменты и сервисы платформы |
+| [ispctl](https://github.com/txix-open/ispctl)<br />[isp-config-service](https://github.com/txix-open/isp-config-service) | Инструменты и сервисы платформы |
 
 ## Проекты
 

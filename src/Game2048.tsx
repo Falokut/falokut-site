@@ -1,131 +1,164 @@
-// 2048: 4×4, стрелки двигают плитки, одинаковые сливаются. Цел — 2048.
-// Палитра плиток — тёмная, под тему сайта.
+// 2048: 4×4, стрелки двигают плитки. Плитки скользят на новое место
+// (CSS transition), слияние — пульс, новая плитка — pop-in. Цель — 2048.
 
-import { useCallback, useEffect, useState, type CSSProperties } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties
+} from 'react'
 
 const SIZE = 4
+const SLIDE_MS = 140
 
-type Grid = number[]
+type Dir = 'left' | 'right' | 'up' | 'down'
+type Tile = {
+  id: number
+  value: number
+  row: number
+  col: number
+  isNew?: boolean
+  merged?: boolean
+  removed?: boolean
+  /** Новое значение после слияния (показывается во второй фазе). */
+  mergeValue?: number
+}
 
-const emptyGrid = (): Grid => Array(16).fill(0)
+let nextId = 1
+const newId = (): number => nextId++
 
-const newTile = (g: Grid): Grid => {
+// Случайная плитка на пустую клетку (0.9 — двойка, иначе четвёрка).
+const spawn = (tiles: Tile[]): Tile | null => {
+  const occupied = new Set(tiles.map((t) => t.row * SIZE + t.col))
   const empty: number[] = []
-  for (let i = 0; i < g.length; i++) if (g[i] === 0) empty.push(i)
-  if (empty.length === 0) return g
-  const ng = [...g]
-  ng[empty[Math.floor(Math.random() * empty.length)]] =
-    Math.random() < 0.9 ? 2 : 4
-  return ng
-}
-
-// Сдвиг одного ряда влево со сливанием; возвращает ряд и прибавку к счёту.
-const slideRow = (row: number[]): { row: number[]; gained: number } => {
-  const arr = row.filter((x) => x !== 0)
-  let gained = 0
-  for (let i = 0; i < arr.length - 1; i++) {
-    if (arr[i] === arr[i + 1]) {
-      arr[i] *= 2
-      gained += arr[i]
-      arr.splice(i + 1, 1)
-    }
+  for (let i = 0; i < SIZE * SIZE; i++) if (!occupied.has(i)) empty.push(i)
+  if (empty.length === 0) return null
+  const cell = empty[Math.floor(Math.random() * empty.length)]
+  return {
+    id: newId(),
+    value: Math.random() < 0.9 ? 2 : 4,
+    row: Math.floor(cell / SIZE),
+    col: cell % SIZE,
+    isNew: true
   }
-  while (arr.length < SIZE) arr.push(0)
-  return { row: arr, gained }
 }
 
-const transpose = (g: Grid): Grid => {
-  const ng = Array(16).fill(0)
-  for (let r = 0; r < SIZE; r++)
-    for (let c = 0; c < SIZE; c++) ng[c * SIZE + r] = g[r * SIZE + c]
-  return ng
+const initTiles = (): Tile[] => {
+  const ts: Tile[] = []
+  const a = spawn(ts)
+  if (a) ts.push(a)
+  const b = spawn(ts)
+  if (b) ts.push(b)
+  return ts
 }
 
-const reverseRows = (g: Grid): Grid => {
-  const ng = [...g]
-  for (let r = 0; r < SIZE; r++)
-    for (let c = 0; c < SIZE / 2; c++) {
-      const a = r * SIZE + c
-      const b = r * SIZE + (SIZE - 1 - c)
-      const t = ng[a]
-      ng[a] = ng[b]
-      ng[b] = t
-    }
-  return ng
-}
-
-const moveLeft = (g: Grid): { grid: Grid; gained: number; moved: boolean } => {
+// Сдвиг в dir: существующие плитки получают новые row/col (анимирует
+// transition), пара-слияние: «выживший» помнит mergeValue, «поглощённая»
+// едет под него и помечается removed (убирается после хода).
+const applyMove = (
+  tiles: Tile[],
+  dir: Dir
+): { tiles: Tile[]; gained: number; moved: boolean } => {
+  const vertical = dir === 'up' || dir === 'down'
+  const reverse = dir === 'right' || dir === 'down'
+  const out: Tile[] = []
   let gained = 0
-  const ng: number[] = []
-  for (let r = 0; r < SIZE; r++) {
-    const res = slideRow(g.slice(r * SIZE, r * SIZE + SIZE))
-    gained += res.gained
-    ng.push(...res.row)
-  }
   let moved = false
-  for (let i = 0; i < ng.length; i++) if (ng[i] !== g[i]) moved = true
-  return { grid: ng, gained, moved }
+  for (let line = 0; line < SIZE; line++) {
+    const lineTiles: Tile[] = []
+    for (let i = 0; i < SIZE; i++) {
+      const row = vertical ? (reverse ? SIZE - 1 - i : i) : line
+      const col = vertical ? line : (reverse ? SIZE - 1 - i : i)
+      const t = tiles.find((x) => x.row === row && x.col === col)
+      if (t !== undefined) lineTiles.push(t)
+    }
+    let slot = 0
+    let i = 0
+    while (i < lineTiles.length) {
+      const t = lineTiles[i]
+      const row = vertical ? (reverse ? SIZE - 1 - slot : slot) : line
+      const col = vertical ? line : (reverse ? SIZE - 1 - slot : slot)
+      const t2 = i + 1 < lineTiles.length ? lineTiles[i + 1] : undefined
+      if (t2 !== undefined && t2.value === t.value) {
+        const target = t.value * 2
+        gained += target
+        if (t.row !== row || t.col !== col || t2.row !== row || t2.col !== col)
+          moved = true
+        out.push({ ...t, row, col, mergeValue: target, merged: true, isNew: false })
+        out.push({ ...t2, row, col, merged: false, removed: true, isNew: false })
+        i += 2
+      } else {
+        if (t.row !== row || t.col !== col) moved = true
+        out.push({ ...t, row, col, merged: false, isNew: false, removed: false })
+        i += 1
+      }
+      slot += 1
+    }
+  }
+  return { tiles: out, gained, moved }
 }
 
-const canMove = (g: Grid): boolean => {
-  for (let i = 0; i < g.length; i++) {
-    if (g[i] === 0) return true
-    const r = Math.floor(i / SIZE)
-    const c = i % SIZE
-    if (c < SIZE - 1 && g[i] === g[i + 1]) return true
-    if (r < SIZE - 1 && g[i] === g[i + SIZE]) return true
-  }
+const canMove = (ts: Tile[]): boolean => {
+  const g: number[][] = Array.from({ length: SIZE }, () =>
+    Array<number>(SIZE).fill(0)
+  )
+  for (const t of ts) g[t.row][t.col] = t.value
+  for (let r = 0; r < SIZE; r++)
+    for (let c = 0; c < SIZE; c++) {
+      if (g[r][c] === 0) return true
+      if (c + 1 < SIZE && g[r][c] === g[r][c + 1]) return true
+      if (r + 1 < SIZE && g[r][c] === g[r + 1][c]) return true
+    }
   return false
 }
 
-// Тёмная палитра: от приглушённого к яркому акценту по мере роста плитки.
-const TILE: Record<number, CSSProperties> = {
-  2: { background: '#1b2536', color: '#c9d4e4' },
-  4: { background: '#22304a', color: '#d5deec' },
-  8: { background: '#0e4d5e', color: '#eaf6fa' },
-  16: { background: '#0a6b7a', color: '#eaf6fa' },
-  32: { background: '#0a8095', color: '#eaf6fa' },
-  64: { background: '#00add8', color: '#04121a' },
-  128: { background: '#19bdec', color: '#04121a' },
-  256: { background: '#3ee0c4', color: '#04121a' },
-  512: { background: '#4ade80', color: '#04121a' },
-  1024: { background: '#a3e635', color: '#04121a' },
-  2048: { background: '#facc15', color: '#1a1500' }
-}
-const tileStyle = (v: number): CSSProperties =>
-  v === 0 ? {} : TILE[Math.min(v, 2048)] ?? TILE[2048]
-
-type Dir = 'left' | 'right' | 'up' | 'down'
-
 export const Game2048 = () => {
-  const [grid, setGrid] = useState<Grid>(() => newTile(newTile(emptyGrid())))
+  const [tiles, setTiles] = useState<Tile[]>(initTiles)
   const [score, setScore] = useState(0)
   const [best, setBest] = useState(0)
   const [over, setOver] = useState(false)
   const [won, setWon] = useState(false)
+  const lockRef = useRef(false)
 
   const doMove = useCallback(
     (dir: Dir) => {
-      if (over) return
-      let g = grid
-      if (dir === 'right') g = reverseRows(g)
-      else if (dir === 'up') g = transpose(g)
-      else if (dir === 'down') g = reverseRows(transpose(g))
-      const res = moveLeft(g)
-      let ng = res.grid
-      if (dir === 'right') ng = reverseRows(ng)
-      else if (dir === 'up') ng = transpose(ng)
-      else if (dir === 'down') ng = reverseRows(transpose(ng))
+      if (lockRef.current || over) return
+      const res = applyMove(tiles, dir)
       if (!res.moved) return
-      ng = newTile(ng)
-      setGrid(ng)
+      lockRef.current = true
+      setTiles(res.tiles)
       const ns = score + res.gained
       setScore(ns)
       setBest((b) => Math.max(b, ns))
-      if (ng.some((v) => v >= 2048)) setWon(true)
-      if (!canMove(ng)) setOver(true)
+      // Вторая фаза: «поглощённые» уехали, слияние показывает новый
+      // значение (пульс), новая плитка — pop-in.
+      window.setTimeout(() => {
+        const clean = res.tiles
+          .filter((t) => !t.removed)
+          .map((t) => ({
+            id: t.id,
+            value: t.mergeValue ?? t.value,
+            row: t.row,
+            col: t.col,
+            isNew: false,
+            merged: t.mergeValue !== undefined
+          }))
+        const fresh = spawn(clean)
+        const final = fresh !== null ? [...clean, fresh] : clean
+        // Победа: среди слияний этого хода появилось 2048 (и выше).
+        if (
+          res.tiles.some(
+            (t) => t.mergeValue !== undefined && t.mergeValue >= 2048
+          )
+        )
+          setWon(true)
+        setTiles(final)
+        if (!canMove(final)) setOver(true)
+        lockRef.current = false
+      }, SLIDE_MS + 20)
     },
-    [grid, over, score]
+    [tiles, over, score]
   )
 
   useEffect(() => {
@@ -147,10 +180,11 @@ export const Game2048 = () => {
   }, [doMove])
 
   const reset = () => {
-    setGrid(newTile(newTile(emptyGrid())))
+    setTiles(initTiles())
     setScore(0)
     setOver(false)
     setWon(false)
+    lockRef.current = false
   }
 
   return (
@@ -161,11 +195,22 @@ export const Game2048 = () => {
       </div>
       <div className="g2048-wrap">
         <div className="g2048-board">
-          {grid.map((v, i) => (
-            <div key={i} className="tile" style={tileStyle(v)}>
-              {v === 0 ? '' : v}
-            </div>
+          {Array.from({ length: SIZE * SIZE }, (_, i) => (
+            <div key={i} className="g2048-cell" />
           ))}
+          <div className="g2048-tiles">
+            {tiles.map((t) => (
+              <div
+                key={t.id}
+                className={`g2048-tile t${Math.min(t.value, 2048)}${
+                  t.isNew ? ' new' : ''
+                }${t.merged ? ' merged' : ''}`}
+                style={{ '--x': t.col, '--y': t.row } as CSSProperties}
+              >
+                {t.value}
+              </div>
+            ))}
+          </div>
         </div>
         {over ? (
           <div className="g2048-overlay">

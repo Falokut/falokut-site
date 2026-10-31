@@ -100,6 +100,7 @@ const parsePage = (raw: string, baseId: string): PageBlocks => {
         if (fence !== 'hero' && fence !== 'code' && cur !== null)
           cur.game = fence
         inFence = false
+        fence = 'code'
       } else {
         push(line)
       }

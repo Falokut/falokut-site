@@ -20,13 +20,11 @@ services:
       - "traefik.http.routers.site-www.entrypoints=web,websecure"
       - "traefik.http.routers.site-www.tls.certresolver=mytlschallenge"
       - "traefik.http.routers.site-www.middlewares=site-www-redirect"
-      - "traefik.http.middlewares.site-www-redirect.redirectHost.backend=falokut.ru"
-      - "traefik.http.middlewares.site-www-redirect.redirectHost.scheme=https"
-      - "traefik.http.middlewares.site-www-redirect.redirectHost.permanent=true"
+      - "traefik.http.middlewares.site-www-redirect.replaceHost.domain=falokut.ru"
+      - "traefik.http.middlewares.site-www-redirect.replaceHost.permanent=true"
       # HSTS — как в n8n-compose
       - "traefik.http.middlewares.site-hsts.headers.STSSeconds=315360000"
       - "traefik.http.middlewares.site-hsts.headers.STSIncludeSubdomains=true"
-      - "traefik.http.middlewares.site-hsts.headers.SSLHost=falokut.ru"
       - "traefik.http.middlewares.site-hsts.headers.SSLRedirect=true"
 
 # сайт вешается на ту же сеть, где живёт traefik из n8n-compose

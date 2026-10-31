@@ -16,7 +16,10 @@ const LINES: Line[] = [
   { text: '# терминал живой — введи команду', dim: true }
 ]
 
-const HELP = 'команды: gopher · clear · help · whoami'
+const HELP = 'команды: gopher · clear · cls · help · whoami'
+
+// Сколько строк истории держать: консоль не должна «пухнуть».
+const MAX_HISTORY = 30
 
 type Pos = { line: number; char: number }
 
@@ -52,24 +55,26 @@ export const HeroTerminal = ({ onGopher }: { onGopher: () => void }) => {
     switch (cmd) {
       case 'gopher':
         out.push({ text: 'gopher found 🐹', ok: true })
-        setHistory((h) => [...h, ...out])
+        setHistory((h) => [...h, ...out].slice(-MAX_HISTORY))
         onGopher()
         break
       case 'clear':
+      case 'cls':
+      case 'clean':
         setHistory([])
         break
       case 'help':
       case '?':
         out.push({ text: HELP, dim: true })
-        setHistory((h) => [...h, ...out])
+        setHistory((h) => [...h, ...out].slice(-MAX_HISTORY))
         break
       case 'whoami':
         out.push({ text: 'timur' })
-        setHistory((h) => [...h, ...out])
+        setHistory((h) => [...h, ...out].slice(-MAX_HISTORY))
         break
       default:
         out.push({ text: `bash: ${cmd}: command not found`, dim: true })
-        setHistory((h) => [...h, ...out])
+        setHistory((h) => [...h, ...out].slice(-MAX_HISTORY))
     }
   }
 
