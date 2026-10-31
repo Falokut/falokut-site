@@ -1,10 +1,13 @@
-// Markdown для секций: GFM (таблицы/списки/код) + кастомный рендер —
-// fence-блоки рисуются «терминальными окнами», внешние ссылки открываются
-// в новой вкладке.
+// Markdown для документов: GFM (таблицы/списки/код) + кастомный рендер —
+// fence-блоки рисуются «терминальными окнами». Внешние компоненты
+// (h2 с id, кросс-ссылки, внешние ссылки) подмешиваются через
+// extraComponents.
 
 import ReactMarkdown, { type Components } from 'react-markdown'
 import { Children, isValidElement, type ReactNode } from 'react'
 import remarkGfm from 'remark-gfm'
+
+export type MarkdownComponents = Pick<Components, 'a' | 'h2' | 'pre'>
 
 const extractCode = (node: ReactNode): string => {
   if (node == null) return ''
@@ -45,23 +48,16 @@ const TerminalPre: Components['pre'] = ({ children }) => {
   )
 }
 
-const MdLink: Components['a'] = ({ href, children, ...rest }) => {
-  const external = typeof href === 'string' && /^(https?:|mailto:)/.test(href)
-  return (
-    <a
-      href={href}
-      {...rest}
-      {...(external ? { target: '_blank', rel: 'noreferrer' } : {})}
-    >
-      {children}
-    </a>
-  )
-}
-
-export const Markdown = ({ text }: { text: string }) => (
+export const Markdown = ({
+  text,
+  extraComponents
+}: {
+  text: string
+  extraComponents?: MarkdownComponents
+}) => (
   <ReactMarkdown
     remarkPlugins={[remarkGfm]}
-    components={{ pre: TerminalPre, a: MdLink }}
+    components={{ pre: TerminalPre, ...extraComponents }}
   >
     {text}
   </ReactMarkdown>

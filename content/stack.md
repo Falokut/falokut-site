@@ -11,4 +11,6 @@ OBSERVABILITY Prometheus · Grafana · OpenTelemetry · Sentry
 DEPLOY        Docker · CI/CD
 ```
 
+## Периметр
+
 А по периметру: TypeScript, Svelte, Linux, n8n.

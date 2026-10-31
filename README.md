@@ -1,23 +1,46 @@
 # falokut-site
 
 Сайт-визитка: **Vite + React + TS + react-markdown** (тот же стек, что
-polygon-docs-ui). Контент — markdown в `content/*.md`, вшивается в бандл
-при сборке через `import.meta.glob` (см. `src/contentTree.ts`):
-обновление контента = правка `.md` + пересборка образа.
+polygon-docs-ui). Логика контента — как в docs-ui: **один markdown-файл
+в `content/` = один документ**, дерево документов — в верхнем нав-баре,
+выбор — по hash (`#/doc/<path>`), TOC («Содержание») — в ненавязчивом
+правом сайдбаре, кросс-ссылки между документами — прямо в markdown.
 
 ## Структура
 
 ```
-content/        markdown-контент секций (about, stack, oss, projects, contacts)
+content/        markdown-контент: about, stack, oss, projects, contacts
+                + meta.json (название, порядок документов в nav)
 src/
-  App.tsx       layout: nav со scroll-spy, hero, секции, статус-бар
-  contentTree.ts import.meta.glob('/content/*.md') -> секции
-  Markdown.tsx  react-markdown: fence-блоки как «терминалы», внешние ссылки
+  App.tsx       layout: nav с деревом, TOC-сайдбар, hero на дефолтном документе
+  docsTree.ts   import.meta.glob('/content/**/*.md') + meta.json -> дерево
+  Markdown.tsx  react-markdown: fence-блоки как «терминалы», кросс-ссылки,
+                h2-якоря; компоненты подмешиваются из App
   Terminal.tsx  анимация «терминала» в hero (whoami / go build ./...)
   GopherEgg.tsx пасхалка: набери «gopher» с клавиатуры
   Statusbar.tsx vim-статусбар с uptime
   style.css     тёмная тема, акцент — Go-синий #00ADD8
 cfg/nginx.conf  nginx (SPA-fallback + долгий кеш /assets/)
+```
+
+## Маршруты
+
+Дефолтный документ — первый в порядке `content/meta.json` (`about.md`):
+без hash сайт открывает `#/doc/about.md`.
+
+```
+#/doc/about.md
+#/doc/stack.md
+#/doc/oss.md
+#/doc/projects.md
+#/doc/contacts.md
+```
+
+Кросс-ссылка в markdown — путь к файлу (относительный от каталога
+текущего дока или абсолютный от корня `content/`, с поддержкой `../`):
+
+```markdown
+Подробнее — в [стек](stack.md) и [open source](/oss.md).
 ```
 
 ## Локально

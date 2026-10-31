@@ -1,0 +1,5 @@
+{
+  "title": "falokut",
+  "description": "Go backend · Saint-Petersburg",
+  "order": ["about.md", "stack.md", "oss.md", "projects.md", "contacts.md"]
+}

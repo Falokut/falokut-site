@@ -98,6 +98,20 @@ body {
   color: var(--accent);
 }
 
+/* Пункты-директории (появятся, когда в content/ будут папки). */
+.nav-group {
+  display: inline-flex;
+  gap: 14px;
+  align-items: center;
+}
+.nav-dir-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
 /* ===== layout ===== */
 main {
   flex: 1;
@@ -436,7 +450,7 @@ main {
 }
 
 /* ===== responsive ===== */
-@media (max-width: 900px) {
+@media (max-width: 960px) {
   .hero {
     grid-template-columns: 1fr;
     gap: 40px;
@@ -447,6 +461,7 @@ main {
   }
   .nav-links {
     gap: 14px;
+    flex-wrap: wrap;
   }
   .nav-links a {
     font-size: 13px;
@@ -455,6 +470,13 @@ main {
     padding-top: 56px;
   }
   .statusbar .sb-mid {
+    display: none;
+  }
+  /* TOC — только на широких экранах. */
+  .layout.toc-open {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .toc {
     display: none;
   }
 }

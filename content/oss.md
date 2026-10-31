@@ -3,6 +3,8 @@
 Контрибьютор [txix-open](https://github.com/txix-open) — набора
 Go-библиотек и сервисов для продакшена.
 
+## Проекты
+
 | Проект | Что это |
 | --- | --- |
 | [isp-kit](https://github.com/txix-open/isp-kit) ★ 14 | Фреймворк для Go-микросервисов: жизненный цикл приложения, конфигурация с hot-reload, PostgreSQL, Kafka / RabbitMQ / STOMP, HTTP и gRPC, OpenTelemetry, Prometheus, Sentry |
