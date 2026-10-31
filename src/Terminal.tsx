@@ -1,9 +1,10 @@
-// «Терминал» в hero: печатает команды последовательно с курсором,
-// в конце курсор мигает — как в настоящем шелле.
+// «Терминал» в hero: сначала печатает команды, затем становится живым —
+// по клику фокусируется и принимает ввод. Команда gopher открывает
+// пасхалку; есть также clear / help / whoami, остальное — not found.
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
-type Line = { text: string; prompt?: boolean; ok?: boolean }
+type Line = { text: string; prompt?: boolean; ok?: boolean; dim?: boolean }
 
 const LINES: Line[] = [
   { prompt: true, text: 'whoami' },
@@ -11,45 +12,106 @@ const LINES: Line[] = [
   { prompt: true, text: 'cat stack.txt' },
   { text: 'go · postgresql · kafka · prometheus' },
   { prompt: true, text: 'go build ./...' },
-  { text: '✓ compiled in 1.2s', ok: true }
+  { text: '✓ compiled in 1.2s', ok: true },
+  { text: '# терминал живой — введи команду', dim: true }
 ]
+
+const HELP = 'команды: gopher · clear · help · whoami'
 
 type Pos = { line: number; char: number }
 
-export const HeroTerminal = () => {
+export const HeroTerminal = ({ onGopher }: { onGopher: () => void }) => {
   const [pos, setPos] = useState<Pos>({ line: 0, char: 0 })
+  const [input, setInput] = useState('')
+  const [history, setHistory] = useState<Line[]>([])
+  const bodyRef = useRef<HTMLDivElement>(null)
   const done = pos.line >= LINES.length
 
+  // Авто-набор: печать команд со случайной для человека интонацией.
   useEffect(() => {
     if (done) return
     const line = LINES[pos.line]
     const finished = pos.char >= line.text.length
-    // Пауза перед командой с промптом — будто человек думает.
     const delay = finished ? 420 : line.prompt ? 320 : 42
     const t = window.setTimeout(() => {
       setPos((p) =>
-        finished ? { line: p.line + 1, char: 0 } : { line: p.line, char: p.char + 1 }
+        finished
+          ? { line: p.line + 1, char: 0 }
+          : { line: p.line, char: p.char + 1 }
       )
     }, delay)
     return () => window.clearTimeout(t)
   }, [pos, done])
 
+  // Выполнение введённой команды (только когда набор дописан).
+  const runCommand = (raw: string) => {
+    const cmd = raw.trim()
+    setInput('')
+    if (cmd === '') return
+    const out: Line[] = [{ prompt: true, text: cmd }]
+    switch (cmd) {
+      case 'gopher':
+        out.push({ text: 'gopher found 🐹', ok: true })
+        setHistory((h) => [...h, ...out])
+        onGopher()
+        break
+      case 'clear':
+        setHistory([])
+        break
+      case 'help':
+      case '?':
+        out.push({ text: HELP, dim: true })
+        setHistory((h) => [...h, ...out])
+        break
+      case 'whoami':
+        out.push({ text: 'timur' })
+        setHistory((h) => [...h, ...out])
+        break
+      default:
+        out.push({ text: `bash: ${cmd}: command not found`, dim: true })
+        setHistory((h) => [...h, ...out])
+    }
+  }
+
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    if (!done || document.activeElement !== bodyRef.current) return
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      runCommand(input)
+    } else if (e.key === 'Backspace') {
+      e.preventDefault()
+      setInput((s) => s.slice(0, -1))
+    } else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      e.preventDefault()
+      setInput((s) => s + e.key)
+    }
+  }
+
+  const lineClass = (l: Line) =>
+    l.ok ? 'ok' : l.dim ? 'dim' : undefined
+
   return (
-    <div className="term" aria-hidden="true">
+    <div className="term">
       <div className="term-bar">
         <span className="t-dot red"></span>
         <span className="t-dot yellow"></span>
         <span className="t-dot green"></span>
-        <em>bash — 80×24</em>
+        <em>{done ? 'bash — живой' : 'bash — 80×24'}</em>
       </div>
-      <div className="term-body">
+      <div
+        className="term-body"
+        ref={bodyRef}
+        tabIndex={done ? 0 : -1}
+        aria-label="Интерактивный терминал: введи команду"
+        onKeyDown={onKeyDown}
+      >
         {LINES.map((l, i) => {
-          if (i > pos.line) return null
-          const full = i < pos.line
-          const isTyping = i === pos.line && !done
+          if (!done && i > pos.line) return null
+          const full = done || i < pos.line
+          const isTyping = !done && i === pos.line
           const text = full || !isTyping ? l.text : l.text.slice(0, pos.char)
           return (
-            <p key={i} className={l.ok ? 'ok' : undefined}>
+            <p key={i} className={lineClass(l)}>
               {l.prompt ? <span className="prompt">$</span> : null}
               {text}
               {isTyping ? <span className="cursor"></span> : null}
@@ -57,9 +119,19 @@ export const HeroTerminal = () => {
           )
         })}
         {done ? (
-          <p>
-            <span className="prompt">$</span> <span className="cursor"></span>
-          </p>
+          <>
+            {history.map((l, i) => (
+              <p key={`h-${i}`} className={lineClass(l)}>
+                {l.prompt ? <span className="prompt">$</span> : null}
+                {l.text}
+              </p>
+            ))}
+            <p>
+              <span className="prompt">$</span>{' '}
+              <span>{input}</span>
+              <span className="cursor"></span>
+            </p>
+          </>
         ) : null}
       </div>
     </div>

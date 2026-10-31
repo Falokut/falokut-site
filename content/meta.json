@@ -1,5 +1,11 @@
 {
   "title": "falokut",
   "description": "Go backend · Saint-Petersburg",
-  "order": ["about.md", "stack.md", "oss.md", "projects.md", "contacts.md"]
+  "pages": [
+    { "file": "index.md", "title": "Главная" },
+    { "file": "games.md" },
+    { "file": "ttt.md" },
+    { "file": "2048.md" },
+    { "file": "memory.md" }
+  ]
 }

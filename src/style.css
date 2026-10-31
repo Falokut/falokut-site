@@ -80,36 +80,84 @@ body {
   text-decoration: none;
   letter-spacing: 0.3px;
 }
-.nav-links {
-  display: flex;
-  gap: 24px;
-}
-.nav-links a {
-  color: var(--muted);
-  text-decoration: none;
-  font-size: 14px;
-  transition: color 0.15s;
-}
-.nav-links a:hover,
-.nav-links a.active {
-  color: var(--text);
-}
-.nav-links a.active {
-  color: var(--accent);
+.nav-page {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--dim);
 }
 
-/* Пункты-директории (появятся, когда в content/ будут папки). */
-.nav-group {
+/* Гамбургер: три линии, в открытом виде — крест. */
+.hamburger {
   display: inline-flex;
-  gap: 14px;
-  align-items: center;
+  flex-direction: column;
+  gap: 4px;
+  padding: 9px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
 }
-.nav-dir-label {
+.hamburger-line {
+  display: block;
+  width: 18px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--muted);
+  transition: transform 0.18s ease, opacity 0.18s ease, background 0.15s;
+}
+.hamburger:hover .hamburger-line {
+  background: var(--text);
+}
+.hamburger.open .hamburger-line:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
+}
+.hamburger.open .hamburger-line:nth-child(2) {
+  opacity: 0;
+}
+.hamburger.open .hamburger-line:nth-child(3) {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+/* Меню выбора страниц под навигацией. */
+.menu {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 4px 24px 16px;
+  border-top: 1px solid var(--border);
+}
+.menu-item {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 9px 12px;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  color: var(--muted);
+  font-family: var(--font);
+  font-size: 15px;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.menu-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+}
+.menu-item.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.menu-idx {
   font-family: var(--mono);
   font-size: 11px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
   color: var(--dim);
+}
+.menu-item.active .menu-idx {
+  color: var(--accent);
 }
 
 /* ===== layout ===== */
@@ -137,6 +185,17 @@ main.content {
 .section,
 .block {
   scroll-margin-top: 64px;
+}
+
+/* Страница с hero наверху — без доп. отступа секции. */
+.hero-page {
+  padding-top: 0;
+}
+.block.sec {
+  margin-top: 56px;
+}
+.hero + .block.sec {
+  margin-top: 40px;
 }
 
 .h2 {
@@ -199,6 +258,12 @@ main.content {
 .toc-item:hover {
   color: var(--text);
   border-left-color: var(--accent);
+}
+
+.toc-item.sub {
+  padding-left: 22px;
+  font-size: 12px;
+  color: var(--dim);
 }
 
 /* ===== hero ===== */
@@ -467,14 +532,160 @@ main.content {
   max-width: 440px;
   text-align: center;
 }
-.egg-gopher {
-  font-family: var(--mono);
-  font-size: 15px;
-  line-height: 1.35;
-  color: var(--accent);
-  text-align: center;
-  margin-bottom: 18px;
-  white-space: pre;
+/* Выбегающая Мышь: старт под курсором, бег в сторону от него
+   (дистанция задаёт время), за собой — пыльный след.
+   Затем — карточка «Мышь». */
+.rat-run {
+  position: fixed;
+  bottom: 46px;
+  left: 0;
+  z-index: 90;
+  pointer-events: none;
+}
+.rat-run.right {
+  animation: rat-run-right 1.7s linear forwards;
+}
+.rat-run.left {
+  animation: rat-run-left 1.7s linear forwards;
+}
+.rat-flip {
+  display: inline-block;
+}
+.rat-flip.flip {
+  transform: scaleX(-1);
+}
+.rat-sprite {
+  display: inline-block;
+  font-size: 54px;
+  line-height: 1;
+  animation: rat-gallop 0.32s ease-in-out infinite;
+}
+.rat-dust-holder {
+  position: absolute;
+  bottom: 0;
+  display: inline-block;
+}
+.rat-run.right .rat-dust-holder {
+  left: -30px;
+}
+.rat-run.left .rat-dust-holder {
+  right: -30px;
+  transform: scaleX(-1);
+}
+.rat-dust {
+  display: inline-block;
+  font-size: 20px;
+  animation: rat-dust 0.35s ease-in-out infinite;
+}
+@keyframes rat-run-right {
+  from {
+    transform: translateX(var(--rat-x, 0));
+  }
+  to {
+    transform: translateX(calc(100vw - var(--rat-x, 0) + 160px));
+  }
+}
+@keyframes rat-run-left {
+  from {
+    transform: translateX(var(--rat-x, 0));
+  }
+  to {
+    transform: translateX(calc(var(--rat-x, 0) - 100vw - 160px));
+  }
+}
+@keyframes rat-gallop {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-4deg);
+  }
+  50% {
+    transform: translateY(-12px) rotate(6deg);
+  }
+}
+@keyframes rat-dust {
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.3);
+  }
+}
+
+/* Анимированный эмодзи: gopher прыгает, Мышь шевелится;
+   под ним «тень», пульсирующая в такт прыжку. */
+.egg-emoji {
+  position: relative;
+  display: inline-block;
+  font-size: 84px;
+  line-height: 1;
+  margin-bottom: 30px;
+}
+.egg-emoji::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -14px;
+  width: 64px;
+  height: 10px;
+  transform: translateX(-50%);
+  background: rgba(0, 173, 216, 0.18);
+  border-radius: 50%;
+}
+.egg-emoji.hop {
+  animation: egg-hop 1.6s ease-in-out infinite;
+}
+.egg-emoji.hop::after {
+  animation: egg-shadow 1.6s ease-in-out infinite;
+}
+.egg-emoji.wiggle {
+  animation: egg-wiggle 1.4s ease-in-out infinite;
+}
+@keyframes egg-hop {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  20% {
+    transform: translateY(-14px) rotate(-5deg);
+  }
+  40% {
+    transform: translateY(0) rotate(4deg) scale(1.05, 0.92);
+  }
+  60% {
+    transform: translateY(-8px) rotate(-3deg);
+  }
+  80% {
+    transform: translateY(0) rotate(0deg);
+  }
+}
+@keyframes egg-shadow {
+  0%,
+  100% {
+    transform: translateX(-50%) scale(1);
+    opacity: 1;
+  }
+  40% {
+    transform: translateX(-50%) scale(0.72);
+    opacity: 0.6;
+  }
+}
+@keyframes egg-wiggle {
+  0%,
+  100% {
+    transform: rotate(0deg) translateX(0);
+  }
+  20% {
+    transform: rotate(-8deg) translateX(-4px);
+  }
+  50% {
+    transform: rotate(8deg) translateX(4px);
+  }
+  80% {
+    transform: rotate(-4deg) translateX(-2px);
+  }
 }
 .egg-title {
   font-size: 20px;
@@ -510,6 +721,198 @@ main.content {
   margin-right: auto;
 }
 
+/* ===== миниигры ===== */
+.block > .ttt,
+.block > .g2048,
+.block > .memory {
+  margin-top: 16px;
+}
+
+/* крестики-нолики */
+.ttt {
+  max-width: 340px;
+}
+.ttt-scores {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 14px;
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--muted);
+}
+.ttt-score.dim {
+  color: var(--dim);
+}
+.ttt-score b {
+  color: var(--accent);
+  font-weight: 600;
+}
+.ttt-board {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.ttt-cell {
+  aspect-ratio: 1;
+  padding: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 30px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.ttt-cell:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.ttt-cell:disabled {
+  cursor: default;
+}
+.ttt-cell.x {
+  color: var(--accent);
+}
+.ttt-cell.o {
+  color: var(--ok);
+}
+.ttt-status {
+  margin-top: 14px;
+  font-size: 15px;
+  color: var(--muted);
+}
+.ttt-status.win {
+  color: var(--ok);
+}
+.ttt-status.lose {
+  color: #ff8f8f;
+}
+.ttt-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+/* 2048 */
+.g2048 {
+  max-width: 400px;
+}
+.g2048-score {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 14px;
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--muted);
+}
+.g2048-wrap {
+  position: relative;
+}
+.g2048-board {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  padding: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.tile {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  font-family: var(--mono);
+  font-size: 20px;
+  font-weight: 700;
+}
+.g2048-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  border-radius: 12px;
+  background: rgba(10, 14, 23, 0.86);
+  backdrop-filter: blur(3px);
+}
+.g2048-overlay p {
+  font-size: 17px;
+}
+.g2048-won {
+  margin-top: 14px;
+  font-size: 15px;
+  color: var(--ok);
+}
+.g2048-reset {
+  margin-top: 14px;
+}
+.g2048-hint {
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--dim);
+}
+
+/* мемори */
+.memory {
+  max-width: 400px;
+}
+.memory-score {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 14px;
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--muted);
+}
+.memory-board {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.mem-card {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s, opacity 0.2s;
+}
+.mem-card:hover {
+  border-color: rgba(255, 255, 255, 0.25);
+}
+.mem-face {
+  font-size: 30px;
+}
+.mem-card.shown {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+.mem-card.matched {
+  background: transparent;
+  border-color: var(--border);
+  opacity: 0.5;
+  cursor: default;
+}
+.memory-win {
+  margin-top: 14px;
+  font-size: 15px;
+  color: var(--ok);
+}
+.memory-reset {
+  margin-top: 14px;
+}
+
 /* ===== responsive ===== */
 @media (max-width: 960px) {
   .hero {
@@ -519,13 +922,6 @@ main.content {
   }
   .term {
     max-width: 560px;
-  }
-  .nav-links {
-    gap: 14px;
-    flex-wrap: wrap;
-  }
-  .nav-links a {
-    font-size: 13px;
   }
   .section {
     padding-top: 56px;

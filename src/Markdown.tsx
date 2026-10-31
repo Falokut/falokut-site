@@ -7,7 +7,7 @@ import ReactMarkdown, { type Components } from 'react-markdown'
 import { Children, isValidElement, type ReactNode } from 'react'
 import remarkGfm from 'remark-gfm'
 
-export type MarkdownComponents = Pick<Components, 'a' | 'h2' | 'pre'>
+export type MarkdownComponents = Partial<Pick<Components, 'a' | 'pre'>>
 
 const extractCode = (node: ReactNode): string => {
   if (node == null) return ''
@@ -55,10 +55,12 @@ export const Markdown = ({
   text: string
   extraComponents?: MarkdownComponents
 }) => (
-  <ReactMarkdown
-    remarkPlugins={[remarkGfm]}
-    components={{ pre: TerminalPre, ...extraComponents }}
-  >
-    {text}
-  </ReactMarkdown>
+  <div className="markdown">
+    <ReactMarkdown
+      remarkPlugins={[remarkGfm]}
+      components={{ pre: TerminalPre, ...extraComponents }}
+    >
+      {text}
+    </ReactMarkdown>
+  </div>
 )
