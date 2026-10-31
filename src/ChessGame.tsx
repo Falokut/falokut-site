@@ -290,7 +290,7 @@ export const ChessGame = () => {
                   (lastMove.from === sq || lastMove.to === sq)
                 const isTarget = legal.some((m) => m.to === sq)
                 const cls = [
-                  ri + ci % 2 === 0 ? 'light' : 'dark',
+                  (ri + ci) % 2 === 0 ? 'light' : 'dark',
                   isLast ? 'last' : '',
                   selected === sq ? 'sel' : '',
                   isTarget ? 'target' : '',
