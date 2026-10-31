@@ -506,13 +506,13 @@ main.content {
   cursor: pointer;
   background: transparent;
 }
-/* Классическая раскраска: светлый крем / тёмный орех — контраст
-   достаточный, чтобы сетка читалась. */
+/* Классическая раскраска с сильным контрастом: слоновая кость /
+   глубокий шоколад — шахматка читается с первого взгляда. */
 .chess-sq.light {
-  background: #ecd6ac;
+  background: #f2e2c4;
 }
 .chess-sq.dark {
-  background: #a97c50;
+  background: #8f5e33;
 }
 .chess-sq:hover {
   outline: 2px solid rgba(0, 173, 216, 0.75);
