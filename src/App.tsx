@@ -1,10 +1,10 @@
 // falokut.ru — одностраничная визитка. Один md-файл в content/ = один
 // раздел; все разделы — на одной странице (порядок — content/meta.json).
-// Логика — как в polygon-docs-ui: контент вшивается в бандл при сборке
-// через import.meta.glob, заголовки и порядок разделов — из meta.json,
-// кросс-ссылки между разделами — прямо в markdown ([раздел](file.md)),
-// дерево разделов — в верхнем нав-баре (scroll-spy), TOC («Содержание»)
-// — в ненавязчивом правом сайдбаре.
+// Логика — как в polygon-docs-ui: дерево «документов» (разделов) — в
+// верхнем нав-баре, TOC — только подзаголовки ТЕКУЩЕГО раздела, в
+// ненавязчивом правом сайдбаре. Контент вшивается в бандл при сборке
+// через import.meta.glob, порядок разделов — content/meta.json,
+// кросс-ссылки между разделами — прямо в markdown ([раздел](file.md)).
 
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 
@@ -24,12 +24,6 @@ type Block = {
   heading: string | null
   id: string | null
   text: string
-}
-
-type TocItem = {
-  id: string
-  title: string
-  level: 0 | 1
 }
 
 const slugify = (text: string): string =>
@@ -83,22 +77,6 @@ const splitBlocks = (body: string, baseId: string): Block[] => {
   return blocks
 }
 
-const buildToc = (
-  sections: Section[],
-  bySection: Map<string, Block[]>
-): TocItem[] => {
-  const items: TocItem[] = []
-  for (const s of sections) {
-    items.push({ id: s.id, title: s.title, level: 0 })
-    for (const b of bySection.get(s.id) ?? []) {
-      if (b.heading !== null && b.id !== null) {
-        items.push({ id: b.id, title: b.heading, level: 1 })
-      }
-    }
-  }
-  return items
-}
-
 // Кросс-ссылка в markdown: путь к .md (относительный или абсолютный от
 // корня content/, с «../») -> id раздела, на который скроллить.
 const resolveSection = (href: string): string | undefined => {
@@ -124,10 +102,17 @@ const App = () => {
     for (const s of sections) m.set(s.id, splitBlocks(s.body, s.id))
     return m
   }, [sections])
-  const toc = useMemo(() => buildToc(sections, bySection), [sections, bySection])
   const rootMeta = dirMeta('')
 
   const [active, setActive] = useState(sections[0]?.id ?? '')
+
+  // TOC: подзаголовки активного раздела (сам раздел — это уже nav).
+  const toc = useMemo(() => {
+    const blocks = bySection.get(active) ?? []
+    return blocks
+      .filter((b) => b.heading !== null && b.id !== null)
+      .map((b) => ({ id: b.id as string, title: b.heading as string }))
+  }, [bySection, active])
 
   // Scroll-spy: активный раздел — тот, что пересекает середину экрана.
   useEffect(() => {
@@ -254,23 +239,21 @@ const App = () => {
         </main>
 
         <aside className="toc">
-          <div className="section-label">Содержание</div>
-          {toc.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              className={[
-                'toc-item',
-                item.level === 1 ? 'sub' : '',
-                item.level === 0 && item.id === active ? 'active' : ''
-              ]
-                .filter(Boolean)
-                .join(' ')}
-              onClick={() => scrollToId(item.id)}
-            >
-              {item.title}
-            </button>
-          ))}
+          {toc.length > 0 ? (
+            <>
+              <div className="section-label">Содержание</div>
+              {toc.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  className="toc-item"
+                  onClick={() => scrollToId(item.id)}
+                >
+                  {item.title}
+                </button>
+              ))}
+            </>
+          ) : null}
         </aside>
       </div>
 

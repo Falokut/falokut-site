@@ -201,16 +201,6 @@ main.content {
   border-left-color: var(--accent);
 }
 
-.toc-item.sub {
-  color: var(--dim);
-  font-size: 12.5px;
-}
-
-.toc-item.active {
-  color: var(--accent);
-  border-left-color: var(--accent);
-}
-
 /* ===== hero ===== */
 .hero {
   display: grid;
