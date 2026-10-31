@@ -20,8 +20,11 @@ services:
       - "traefik.http.routers.site-www.entrypoints=web,websecure"
       - "traefik.http.routers.site-www.tls.certresolver=mytlschallenge"
       - "traefik.http.routers.site-www.middlewares=site-www-redirect"
-      - "traefik.http.middlewares.site-www-redirect.replaceHost.domain=falokut.ru"
-      - "traefik.http.middlewares.site-www-redirect.replaceHost.permanent=true"
+      # v3 OSS: redirectHost/replaceHost не существуют — только redirectRegex
+      # (\\ — экранирование YAML, $$ — escape интерполяции compose)
+      - "traefik.http.middlewares.site-www-redirect.redirectRegex.regex=^https?://www\\.falokut\\.ru/(.*)$"
+      - "traefik.http.middlewares.site-www-redirect.redirectRegex.replacement=https://falokut.ru/$${1}"
+      - "traefik.http.middlewares.site-www-redirect.redirectRegex.permanent=true"
       # HSTS — как в n8n-compose
       - "traefik.http.middlewares.site-hsts.headers.STSSeconds=315360000"
       - "traefik.http.middlewares.site-hsts.headers.STSIncludeSubdomains=true"
