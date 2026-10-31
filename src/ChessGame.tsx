@@ -22,6 +22,13 @@ const GLYPH: Record<string, string> = {
   p: '♟'
 }
 const FILES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
+// Порядок кнопок промоции и подписи для aria.
+const PROMO_CHOICES: Array<{ id: 'q' | 'r' | 'b' | 'n'; name: string }> = [
+  { id: 'q', name: 'Ферзь' },
+  { id: 'r', name: 'Ладья' },
+  { id: 'b', name: 'Слон' },
+  { id: 'n', name: 'Конь' }
+]
 
 type GameOver = { title: string; text: string }
 
@@ -53,6 +60,12 @@ export const ChessGame = () => {
   )
   const [over, setOver] = useState<GameOver | null>(null)
   const [levelIdx, setLevelIdx] = useState(1)
+  // Промоция: пешка игрока на последней горизонтали, ждём, в кого
+  // превращаем (движку выбор не нужен — UCI сам несёт фигуру).
+  const [pendingPromo, setPendingPromo] = useState<{
+    from: string
+    to: string
+  } | null>(null)
   // Генерация партии: старый ответ движка не попадает в новую партию.
   const genRef = useRef(0)
 
@@ -85,6 +98,7 @@ export const ChessGame = () => {
       setTurn(chess.turn())
       setSelected(null)
       setLegal([])
+      setPendingPromo(null)
       setEvalScore(null)
       const hist = chess.history({ verbose: true })
       const last = hist.length > 0 ? hist[hist.length - 1] : undefined
@@ -142,13 +156,26 @@ export const ChessGame = () => {
     return () => setEvalListener(null)
   }, [])
 
-  // Игрок: фигура → клетка. Промоция — сразу ладья.
+  // Игрок: фигура → клетка. Промоция — окном выбора фигуры.
   const onSquare = (sq: string) => {
-    if (over !== null || thinking || turn !== playerColor) return
+    if (over !== null || thinking || turn !== playerColor || pendingPromo !== null)
+      return
     if (selected !== null) {
       const mv = legal.find((m) => m.to === sq)
       if (mv !== undefined) {
-        chess.move({ from: mv.from, to: mv.to, promotion: 'q' })
+        const pc = chess.get(mv.from)
+        if (
+          pc !== undefined &&
+          pc.type === 'p' &&
+          (sq[1] === '8' || sq[1] === '1')
+        ) {
+          // Пешка на последней горизонтали: спросим, в кого.
+          setSelected(null)
+          setLegal([])
+          setPendingPromo({ from: mv.from, to: sq })
+          return
+        }
+        chess.move({ from: mv.from, to: mv.to })
         resync(true, playerColor)
         return
       }
@@ -163,6 +190,17 @@ export const ChessGame = () => {
     setLegal([])
   }
 
+  const doPromote = (p: 'q' | 'r' | 'b' | 'n') => {
+    if (pendingPromo === null) return
+    chess.move({
+      from: pendingPromo.from,
+      to: pendingPromo.to,
+      promotion: p
+    })
+    setPendingPromo(null)
+    resync(true, playerColor)
+  }
+
   const newGame = (color: Color) => {
     genRef.current += 1
     chess.reset()
@@ -174,7 +212,7 @@ export const ChessGame = () => {
   }
 
   const takeBack = () => {
-    if (thinking) return
+    if (thinking || pendingPromo !== null) return
     genRef.current += 1
     chess.undo()
     // Вернуть ход и ответ движка: позиция снова за игроком.
@@ -288,6 +326,37 @@ export const ChessGame = () => {
               })
             )}
           </div>
+          {pendingPromo !== null ? (
+            <div className="chess-overlay">
+              <p className="chess-over-title">Промоция</p>
+              <div
+                className="chess-promo-row"
+                role="group"
+                aria-label="В кого превратить пешку"
+              >
+                {PROMO_CHOICES.map((p) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    className={`chess-promo-btn ${
+                      playerColor === 'w' ? 'pw' : 'pb'
+                    }`}
+                    onClick={() => doPromote(p.id)}
+                    aria-label={p.name}
+                  >
+                    {GLYPH[p.id]}
+                  </button>
+                ))}
+              </div>
+              <button
+                type="button"
+                className="btn ghost"
+                onClick={() => setPendingPromo(null)}
+              >
+                Отмена
+              </button>
+            </div>
+          ) : null}
           {over !== null ? (
             <div className="chess-overlay">
               <p className="chess-over-title">{over.title}</p>
@@ -352,8 +421,8 @@ export const ChessGame = () => {
         </div>
       </div>
       <p className="chess-hint dim">
-        Клик — фигура, клик — клетка. Промоция: пешка сразу становится
-        ферзем. Движок — Stockfish 19 (lite, WASM), ходит в web worker.
+        Клик — фигура, клик — клетка. Промоция: выбираешь, в кого.
+        Движок — Stockfish 19 (lite, WASM), ходит в web worker.
       </p>
     </div>
   )
