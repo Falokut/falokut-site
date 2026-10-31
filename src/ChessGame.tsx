@@ -77,8 +77,10 @@ export const ChessGame = () => {
   }, [chess, playerColor])
 
   // Синхронизация UI с положением; rethink — запустить ход движка.
+  // color передаём явно, а не из замыкания: newGame() меняет
+  // playerColor через setState, и в этом же вызове state ещё старый.
   const resync = useCallback(
-    (rethink: boolean) => {
+    (rethink: boolean, color: Color) => {
       setFen(chess.fen())
       setTurn(chess.turn())
       setSelected(null)
@@ -94,7 +96,7 @@ export const ChessGame = () => {
         setOver(describeOver())
         return
       }
-      if (rethink && chess.turn() !== playerColor) {
+      if (rethink && chess.turn() !== color) {
         setThinking(true)
         const gen = ++genRef.current
         window.setTimeout(() => {
@@ -124,7 +126,7 @@ export const ChessGame = () => {
                 })
                 return
               }
-              resync(true)
+              resync(true, color)
             }
           )
         }, 350)
@@ -132,7 +134,7 @@ export const ChessGame = () => {
         setThinking(false)
       }
     },
-    [chess, describeOver, levelIdx, playerColor]
+    [chess, describeOver, levelIdx]
   )
 
   useEffect(() => {
@@ -147,7 +149,7 @@ export const ChessGame = () => {
       const mv = legal.find((m) => m.to === sq)
       if (mv !== undefined) {
         chess.move({ from: mv.from, to: mv.to, promotion: 'q' })
-        resync(true)
+        resync(true, playerColor)
         return
       }
     }
@@ -167,7 +169,8 @@ export const ChessGame = () => {
     setPlayerColor(color)
     setOver(null)
     setLastMove(null)
-    resync(true)
+    // color — явно: setPlayerColor ещё не применён в этом вызове.
+    resync(true, color)
   }
 
   const takeBack = () => {
@@ -177,7 +180,7 @@ export const ChessGame = () => {
     // Вернуть ход и ответ движка: позиция снова за игроком.
     if (chess.turn() !== playerColor && chess.history().length > 0)
       chess.undo()
-    resync(true)
+    resync(true, playerColor)
   }
 
   // Ориентация доски: у игрока всегда «свои» фигуры внизу.
