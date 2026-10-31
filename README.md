@@ -56,9 +56,9 @@ cd /opt/falokut-site
 docker compose up -d --build
 ```
 
-Traefik подхватит контейнер по label'ам (`Host(falokut.ru)`, резолвер
-`mytlschallenge`) и выдаст Let's Encrypt сертификат для `falokut.ru`
-(TLS challenge).
+Traefik подхватит контейнер по label'ам (`Host(falokut.ru) || Host(www.falokut.ru)`,
+резолвер `mytlschallenge`) и выдаст Let's Encrypt сертификат на оба имени
+(TLS challenge); `www` редиректит на apex (301).
 
 Обновление контента:
 
@@ -79,3 +79,10 @@ docker compose up -d --build
 ## Требования к DNS
 
 - `falokut.ru` → A → IP сервера (для сертификата и самого сайта).
+- `www.falokut.ru` → A → IP сервера (зеркало apex; сайт редиректит www → apex).
+- `_tlschallenge.falokut.ru` → A → IP сервера. **Нужно постоянно**: TLS
+  challenge Let's Encrypt проверяет её и при выдаче, и при продлении
+  (~за 30 дней до истечения). Без неё продление не пройдёт и сайт
+  останется без сертификата.
+- `_tlschallenge.www.falokut.ru` → A → IP сервера (то же, для www).
+- `_tlschallenge.n8n.falokut.ru` → A → IP сервера (для n8n.falokut.ru).
