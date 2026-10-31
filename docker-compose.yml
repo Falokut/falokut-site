@@ -32,7 +32,7 @@ services:
       # tls=true обслуживает только HTTPS-запросы, поэтому на http он
       # не матчится и без этого роутера http отдавал бы 404.
       # (SSLRedirect в v3 из headers-мидлваря убран — redirectScheme.)
-      - "traefik.http.routers.site-http.rule=Host(`falokut.ru`) || Host(`www.falokut.ru`)"
+      - "traefik.http.routers.site-http.rule=(Host(`falokut.ru`) || Host(`www.falokut.ru`)) && !PathPrefix(/.well-known/acme-challenge)"
       - "traefik.http.routers.site-http.entrypoints=web"
       - "traefik.http.routers.site-http.priority=100"
       - "traefik.http.routers.site-http.middlewares=site-https-redirect"
