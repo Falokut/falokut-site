@@ -446,6 +446,7 @@ main.content {
   align-items: center;
   gap: 12px;
   margin-bottom: 10px;
+  flex-wrap: wrap;
 }
 .chess-eval {
   font-family: var(--mono);
@@ -475,17 +476,25 @@ main.content {
   border-radius: 8px;
   padding: 4px 8px;
 }
+/* Клетки — фиксированные 60×60: размеры строк и колонок заданы
+   жёстко, доска не «дышит» при ходах (auto-строки пересчитывались
+   под контент). На узких экранах доска скроллится, а не сжимается. */
 .chess-board-wrap {
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.chess-board-frame {
   position: relative;
+  width: fit-content;
+  margin-inline: auto;
 }
 .chess-board {
   display: grid;
-  grid-template-columns: repeat(8, 1fr);
-  aspect-ratio: 1;
+  grid-template-columns: repeat(8, 60px);
+  grid-template-rows: repeat(8, 60px);
   border: 1px solid var(--border);
   border-radius: 10px;
   overflow: hidden;
-  background: var(--surface);
 }
 .chess-sq {
   position: relative;
@@ -497,21 +506,23 @@ main.content {
   cursor: pointer;
   background: transparent;
 }
+/* Классическая раскраска: светлый крем / тёмный орех — контраст
+   достаточный, чтобы сетка читалась. */
 .chess-sq.light {
-  background: #2a3a55;
+  background: #ecd6ac;
 }
 .chess-sq.dark {
-  background: #17233a;
+  background: #a97c50;
 }
 .chess-sq:hover {
-  outline: 2px solid rgba(0, 173, 216, 0.5);
+  outline: 2px solid rgba(0, 173, 216, 0.75);
   outline-offset: -2px;
 }
 .chess-sq.last {
-  box-shadow: inset 0 0 0 100px rgba(0, 173, 216, 0.16);
+  box-shadow: inset 0 0 0 100px rgba(56, 142, 60, 0.38);
 }
 .chess-sq.sel {
-  box-shadow: inset 0 0 0 100px rgba(0, 173, 216, 0.3);
+  box-shadow: inset 0 0 0 100px rgba(56, 142, 60, 0.55);
 }
 .chess-sq.target::after {
   content: '';
@@ -519,37 +530,43 @@ main.content {
   width: 26%;
   height: 26%;
   border-radius: 50%;
-  background: rgba(232, 237, 246, 0.4);
+  background: rgba(16, 20, 28, 0.35);
 }
 .chess-sq.target:has(.chess-pc)::after {
   width: 88%;
   height: 88%;
   background: transparent;
-  border: 3px solid rgba(232, 237, 246, 0.4);
+  border: 3px solid rgba(16, 20, 28, 0.35);
 }
 .chess-sq.check {
-  box-shadow: inset 0 0 0 100px rgba(255, 95, 87, 0.35);
+  box-shadow: inset 0 0 0 100px rgba(229, 57, 53, 0.5);
 }
 .chess-pc {
-  font-size: clamp(22px, 5.2vw, 38px);
+  font-size: 34px;
   line-height: 1;
   user-select: none;
 }
 .chess-pc.pw {
-  color: #e8edf6;
-  text-shadow: 0 2px 3px rgba(0, 0, 0, 0.55);
+  color: #f8fafc;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 .chess-pc.pb {
-  color: #10182a;
-  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.25);
+  color: #151922;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.35);
 }
+/* Координаты читаются и на светлой, и на тёмной клетке. */
 .coord {
   position: absolute;
   font-style: normal;
   font-family: var(--mono);
-  font-size: 9px;
-  color: rgba(232, 237, 246, 0.45);
+  font-size: 10px;
   pointer-events: none;
+}
+.chess-sq.light .coord {
+  color: rgba(122, 84, 44, 0.9);
+}
+.chess-sq.dark .coord {
+  color: rgba(255, 236, 205, 0.85);
 }
 .coord.rank {
   top: 3px;
@@ -1039,6 +1056,9 @@ main.content {
   inset: 8px;
   pointer-events: none;
 }
+/* Палитра: у каждого значения свой оттенок/светлота, соседние
+   плитки всегда различимы (2-4 — холодные, 8-32 — теловая
+   эскалация, 64+ — тёплое «нагревание» до фиолетового 2048). */
 .g2048-tile {
   position: absolute;
   top: 0;
@@ -1053,8 +1073,8 @@ main.content {
   font-family: var(--mono);
   font-size: 20px;
   font-weight: 700;
-  background: #1b2536;
-  color: #c9d4e4;
+  background: #46587a;
+  color: #dde5f2;
   transform: translate(
     calc(var(--x) * (100% + 8px)),
     calc(var(--y) * (100% + 8px))
@@ -1062,50 +1082,50 @@ main.content {
   transition: transform 140ms ease;
 }
 .g2048-tile.t4 {
-  background: #22304a;
-  color: #d5deec;
+  background: #6479ab;
+  color: #eef2fb;
 }
 .g2048-tile.t8 {
-  background: #0e4d5e;
-  color: #eaf6fa;
+  background: #15606f;
+  color: #d9f1f7;
 }
 .g2048-tile.t16 {
-  background: #0a6b7a;
+  background: #0f8ba0;
   color: #eaf6fa;
 }
 .g2048-tile.t32 {
-  background: #0a8095;
-  color: #eaf6fa;
-}
-.g2048-tile.t64 {
   background: #00add8;
   color: #04121a;
 }
+.g2048-tile.t64 {
+  background: #2ee6a6;
+  color: #04241a;
+}
 .g2048-tile.t128 {
-  background: #19bdec;
-  color: #04121a;
+  background: #a3e635;
+  color: #1a2004;
   font-size: 18px;
 }
 .g2048-tile.t256 {
-  background: #3ee0c4;
-  color: #04121a;
+  background: #facc15;
+  color: #201a04;
   font-size: 18px;
 }
 .g2048-tile.t512 {
-  background: #4ade80;
-  color: #04121a;
+  background: #fb923c;
+  color: #241104;
   font-size: 18px;
 }
 .g2048-tile.t1024 {
-  background: #a3e635;
-  color: #04121a;
+  background: #f4726f;
+  color: #260505;
   font-size: 16px;
 }
 .g2048-tile.t2048 {
-  background: #facc15;
-  color: #1a1500;
+  background: #c084fc;
+  color: #1c0630;
   font-size: 16px;
-  box-shadow: 0 0 20px rgba(250, 204, 21, 0.3);
+  box-shadow: 0 0 20px rgba(192, 132, 252, 0.45);
 }
 /* Новая плитка — pop-in (scale отдельно от позиционирующего transform). */
 .g2048-tile.new {

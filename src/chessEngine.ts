@@ -5,13 +5,19 @@
 
 const ENGINE_URL = '/stockfish/stockfish-19-lite-single.js'
 
-/** Сила хода: skill — «Skill Level» Stockfish, depth — глубина. */
-export type EngineLevel = { label: string; skill: number; depth: number }
+/** Сила хода: skill — «Skill Level» Stockfish, depth — глубина,
+ *  elo — ориентировочная сила (неточно, но порядок верный). */
+export type EngineLevel = {
+  label: string
+  elo: number
+  skill: number
+  depth: number
+}
 
 export const ENGINE_LEVELS: EngineLevel[] = [
-  { label: 'Легко', skill: 2, depth: 8 },
-  { label: 'Средне', skill: 10, depth: 14 },
-  { label: 'Сложно', skill: 20, depth: 18 }
+  { label: 'Легко', elo: 1500, skill: 2, depth: 8 },
+  { label: 'Средне', elo: 2200, skill: 10, depth: 14 },
+  { label: 'Сложно', elo: 3000, skill: 20, depth: 18 }
 ]
 
 type Engine = {

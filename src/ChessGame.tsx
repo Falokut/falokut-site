@@ -227,74 +227,78 @@ export const ChessGame = () => {
         >
           {ENGINE_LEVELS.map((l, i) => (
             <option key={l.label} value={i}>
-              {l.label}
+              {l.label} · ~{l.elo}
             </option>
           ))}
         </select>
       </div>
       <div className="chess-board-wrap">
-        <div
-          className="chess-board"
-          role="grid"
-          aria-label="Доска 8×8"
-          data-fen={fen}
-        >
-          {rows.map((rank, ri) =>
-            cols.map((file, ci) => {
-              const sq = `${file}${rank}`
-              const cell = board[8 - rank][FILES.indexOf(file)]
-              const isLast =
-                lastMove !== null &&
-                (lastMove.from === sq || lastMove.to === sq)
-              const isTarget = legal.some((m) => m.to === sq)
-              const cls = [
-                ri + ci % 2 === 0 ? 'light' : 'dark',
-                isLast ? 'last' : '',
-                selected === sq ? 'sel' : '',
-                isTarget ? 'target' : '',
-                checkSquare === sq ? 'check' : ''
-              ]
-                .filter(Boolean)
-                .join(' ')
-              return (
-                <button
-                  type="button"
-                  key={sq}
-                  className={`chess-sq ${cls}`}
-                  onClick={() => onSquare(sq)}
-                  aria-label={sq}
-                >
-                  {cell !== null ? (
-                    <span
-                      className={`chess-pc ${cell.color === 'w' ? 'pw' : 'pb'}`}
-                    >
-                      {GLYPH[cell.type]}
-                    </span>
-                  ) : null}
-                  {ci === 0 ? (
-                    <i className="coord rank">{rank}</i>
-                  ) : null}
-                  {ri === 7 ? (
-                    <i className="coord file">{file}</i>
-                  ) : null}
-                </button>
-              )
-            })
-          )}
-        </div>
-        {over !== null ? (
-          <div className="chess-overlay">
-            <p className="chess-over-title">{over.title}</p>
-            <p>{over.text}</p>
-            <button
-              type="button"
-              className="btn primary"
-              onClick={() => newGame(playerColor)}
-            >
-              Снова
-            </button>
+        <div className="chess-board-frame">
+          <div
+            className="chess-board"
+            role="grid"
+            aria-label="Доска 8×8"
+            data-fen={fen}
+          >
+            {rows.map((rank, ri) =>
+              cols.map((file, ci) => {
+                const sq = `${file}${rank}`
+                const cell = board[8 - rank][FILES.indexOf(file)]
+                const isLast =
+                  lastMove !== null &&
+                  (lastMove.from === sq || lastMove.to === sq)
+                const isTarget = legal.some((m) => m.to === sq)
+                const cls = [
+                  ri + ci % 2 === 0 ? 'light' : 'dark',
+                  isLast ? 'last' : '',
+                  selected === sq ? 'sel' : '',
+                  isTarget ? 'target' : '',
+                  checkSquare === sq ? 'check' : ''
+                ]
+                  .filter(Boolean)
+                  .join(' ')
+                return (
+                  <button
+                    type="button"
+                    key={sq}
+                    className={`chess-sq ${cls}`}
+                    onClick={() => onSquare(sq)}
+                    aria-label={sq}
+                  >
+                    {cell !== null ? (
+                      <span
+                        className={`chess-pc ${
+                          cell.color === 'w' ? 'pw' : 'pb'
+                        }`}
+                      >
+                        {GLYPH[cell.type]}
+                      </span>
+                    ) : null}
+                    {ci === 0 ? (
+                      <i className="coord rank">{rank}</i>
+                    ) : null}
+                    {ri === 7 ? (
+                      <i className="coord file">{file}</i>
+                    ) : null}
+                  </button>
+                )
+              })
+            )}
           </div>
-        ) : null}
+          {over !== null ? (
+            <div className="chess-overlay">
+              <p className="chess-over-title">{over.title}</p>
+              <p>{over.text}</p>
+              <button
+                type="button"
+                className="btn primary"
+                onClick={() => newGame(playerColor)}
+              >
+                Снова
+              </button>
+            </div>
+          ) : null}
+        </div>
       </div>
       <div className="chess-moves">
         {pairs.length === 0 ? (
