@@ -1,0 +1,18 @@
+services:
+  site:
+    build: .
+    image: falokut-site:latest
+    container_name: falokut-site
+    restart: always
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.site.rule=Host(`falokut.ru`)"
+      - "traefik.http.routers.site.tls=true"
+      - "traefik.http.routers.site.entrypoints=web,websecure"
+      - "traefik.http.routers.site.tls.certresolver=mytlschallenge"
+
+# сайт вешается на ту же сеть, где живёт traefik из n8n-compose
+networks:
+  default:
+    external: true
+    name: n8n-compose_default
